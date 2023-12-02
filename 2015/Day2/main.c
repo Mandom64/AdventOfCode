@@ -8,9 +8,9 @@ typedef struct {
 } Strings;
 
 typedef struct {
-    int length[1024];
-    int width[1024];
-    int height[1024];
+    int l[1024];
+    int w[1024];
+    int h[1024];
     int count;
 } BoxSurfaceArea;
 
@@ -27,7 +27,7 @@ BoxSurfaceArea *create_boxArea() {
 }
 
 BoxSurfaceArea *fill_data(Strings *input) {
-    BoxSurfaceArea *wrap_paper = create_boxArea();
+    BoxSurfaceArea *box = create_boxArea();
 
     for(int i = 0; i < input->count; i++) {
         char *token = strtok(input->string[i], "x");
@@ -35,21 +35,21 @@ BoxSurfaceArea *fill_data(Strings *input) {
         while(token != NULL) {
             int num = strtol(token, NULL, 10);
             if(counter == 0) {
-                wrap_paper->length[wrap_paper->count] = num;
+                box->l[box->count] = num;
             }
             else if(counter == 1) {
-                wrap_paper->width[wrap_paper->count] = num;
+                box->w[box->count] = num;
             }
             else if(counter == 2) {
-                wrap_paper->height[wrap_paper->count] = num;
+                box->h[box->count] = num;
             }
             token = strtok(NULL, "x");
             counter++;
         }
-        wrap_paper->count++;
+        box->count++;
     }
 
-    return wrap_paper;
+    return box;
 }
 
 int min3(int a, int b, int c) {
@@ -60,13 +60,13 @@ int min3(int a, int b, int c) {
 }
 
 int part_one(Strings *input) {
-    BoxSurfaceArea *wrap_paper = fill_data(input);
+    BoxSurfaceArea *present = fill_data(input);
     int sum = 0;
 
-    for(int i = 0; i < wrap_paper->count; i++) {
-        int x = wrap_paper->length[i] * wrap_paper->width[i];
-        int y = wrap_paper->width[i] * wrap_paper->height[i];
-        int z = wrap_paper->height[i] * wrap_paper->length[i];
+    for(int i = 0; i < present->count; i++) {
+        int x = present->l[i] * present->w[i];
+        int y = present->w[i] * present->h[i];
+        int z = present->h[i] * present->l[i];
         int partial_sum = 2*x + 2*y + 2*z + min3(x, y, z);
         sum += partial_sum;
     }
@@ -75,15 +75,15 @@ int part_one(Strings *input) {
 }
 
 int part_two(Strings *input) {
-    BoxSurfaceArea *wrap_paper = fill_data(input);
+    BoxSurfaceArea *present = fill_data(input);
     int sum = 0;
 
-    for(int i = 0; i < wrap_paper->count; i++) {
-        int x = wrap_paper->length[i] + wrap_paper->width[i];
-        int y = wrap_paper->width[i] + wrap_paper->height[i];
-        int z = wrap_paper->height[i] + wrap_paper->length[i];
+    for(int i = 0; i < present->count; i++) {
+        int x = present->l[i] + present->w[i];
+        int y = present->w[i] + present->h[i];
+        int z = present->h[i] + present->l[i];
         int ribbon = 2 * min3(x, y, z);
-        int bow = wrap_paper->length[i] * wrap_paper->height[i] * wrap_paper->width[i];
+        int bow = present->l[i] * present->h[i] * present->w[i];
         int partial_sum = ribbon + bow;
         sum += partial_sum;
     }
