@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#define DEBUG 1
+#define DEBUG 0
 
 // 2D array of strings that holds each line in input.txt
 #define N 16384
