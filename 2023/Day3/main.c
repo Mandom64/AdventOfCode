@@ -75,7 +75,7 @@ void destroy_table(SchematicTable *st) {
     free(st);
 }
 
-typedef enum Border{
+typedef enum TableBorders{
     LEFT_UP,
     LEFT_DOWN,
     RIGHT_UP,
@@ -85,33 +85,17 @@ typedef enum Border{
     UP_SIDE,
     DOWN_SIDE,
     INSIDE,
-}Border;
+}TableBorders;
 
-Border check_borders(SchematicTable *st, int row, int col) {
-    if(row == 0 && col == 0) { 
-        return LEFT_UP;
-    }
-    if(row == 0 && col == st->cols-1) {
-        return RIGHT_UP;
-    }
-    if(col == 0 && (row > 0 && row < st->rows)) {
-        return LEFT_SIDE;
-    }
-    if(col == st->cols-1 && (row > 0 && row < st->rows)) {
-        return RIGHT_SIDE;
-    }
-    if(row == st->rows-1 && col == 0) {
-        return LEFT_DOWN;
-    }
-    if(row == st->rows-1 && col == st->cols-1) {
-        return RIGHT_DOWN;
-    }
-    if(row == 0 && (col > 0 && col < st->cols)){
-        return UP_SIDE;
-    }
-    if(row == st->rows-1 && (col > 0 && col < st->cols)) {
-        return DOWN_SIDE;
-    }
+TableBorders check_TableBorders(SchematicTable *st, int row, int col) {
+    if(row == 0 && col == 0)                             return LEFT_UP;
+    if(row == 0 && col == st->cols-1)                    return RIGHT_UP;
+    if(row == st->rows-1 && col == 0)                    return LEFT_DOWN;
+    if(row == st->rows-1 && col == st->cols-1)           return RIGHT_DOWN;
+    if(col == 0 && (row > 0 && row < st->rows))          return LEFT_SIDE;
+    if(row == 0 && (col > 0 && col < st->cols))          return UP_SIDE;
+    if(col == st->cols-1 && (row > 0 && row < st->rows)) return RIGHT_SIDE;
+    if(row == st->rows-1 && (col > 0 && col < st->cols)) return DOWN_SIDE;
     return INSIDE;
 }
 
@@ -127,7 +111,7 @@ bool is_symbol(char c) {
 }
 
 bool symbol_adjacent(SchematicTable *st, int row, int col) {
-    Border pos = check_borders(st, row, col);
+    TableBorders pos = check_TableBorders(st, row, col);
     bool adj = false;
     switch(pos) {
         case LEFT_UP:
@@ -211,6 +195,9 @@ bool symbol_adjacent(SchematicTable *st, int row, int col) {
     return adj;
 }
 
+
+
+
 int main(int argc, char **argv) {
     char *input = read_data(argv[1]);
     SchematicTable *st = create_table(input);
@@ -221,7 +208,6 @@ int main(int argc, char **argv) {
             char curr_number[128] = {0};
             int k = 0;
             bool sym_adj = false;
-            bool number_adj = false;
 
             // Find each number in a row
             while(isdigit(st->table[row][col])) {
@@ -233,9 +219,7 @@ int main(int argc, char **argv) {
                 col++;
                 k++;
             }
-            if(is_symbol(st->table[row][col])) {
-                
-            }
+
             if(sym_adj) {
                 int part_number = strtol(curr_number, &curr_number, 10);
                 sum_parts += part_number;
