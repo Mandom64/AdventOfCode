@@ -14,7 +14,6 @@ char *read_data(char *file_path) {
         printf("Failed to open file.\n");
         return NULL;
     }
-
     fseek(fp, 0, SEEK_END);
     N = ftell(fp);
     fseek(fp, 0, SEEK_SET);
@@ -41,6 +40,7 @@ int part_one(char *input) {
     for (int i = 0; i < strlen(input); i++) {
         if(input[i] == '\n') cards++; 
     }
+    cards++;
 
     // Numbers in each card
     int N = (int)(strlen(input) / cards);
@@ -94,74 +94,65 @@ int part_one(char *input) {
     return total_points;
 }
 
-void table_insert(char **table, int *size, int pos, char *str) {
-    *size++;
-    for(int i = *size - 1; i >= pos; i--) {
-        table[i] = table[i-1];
-    }
-    table[pos-1] = str;
-}
-
 int part_two(char *input) {
-    int input_len = strlen(input);
     char **cards = NULL;
     int rows = 0;
     int cols = 0;
+
+    // Create the table
     for (int i = 0; i < strlen(input); i++) {
         if(input[i] == '\n') rows++; 
     }
-    cols = (input_len / (rows+1)) + 1;
-
-    cards = malloc(rows * 5 * sizeof(char*));
-    for(int row = 0; row < rows*5; row++) {
+    cols = (strlen(input) / (rows+1)) + 1;
+    cards = malloc(rows * sizeof(char*));
+    for(int row = 0; row < rows; row++) {
         cards[row] = malloc(cols * sizeof(char));
     }
-    printf("rows = %d cols = %d\n", rows, cols);
+    // Each row is one card
     for(int row = 0; row < rows; row++) {
         for(int col = 0; col < cols; col++) {
             cards[row][col] = input[cols*row + col];
         }
     }
 
-    int wins = 0;
+    // Instances hold how many times a card has won, including copies
+    int instances[rows];
+    for(int i = 0; i < rows; i++) {
+        instances[i] = 1;
+    }
     for(int i = 0; i < rows; i++) {
         int points = part_one(cards[i]);
-        int matching_numbers = 0;
+        int matches = 0;
         if(points == 1) {
-            matching_numbers = 1;
-        } else {
+            matches = 1;
+        } else if(points > 1){
             while(points > 1) {
                 points /= 2;
-                matching_numbers++;
+                matches++;
             }
-            matching_numbers++;
+            matches++;
+        } else {
+            matches = 0;
         }
-        if(matching_numbers > 0) {
-            wins++;
-            // Duplicate matching numbers of next cards 
-            // idea: append to the end and sort after?
-            for(int row = i; row < matching_numbers; row++) {
-                //table_insert(cards, &rows, row, cards[row]);
-                //rows++;
-                for(int z = rows - 1; z >= row; z--) {
-                    cards[z+1] = cards[z];
-                }
-                cards[row-1] = cards[row];
-                // str_sort(cards[5]);
-            }
-        }
-        printf("matching numbers = %d\n", matching_numbers);
-    }
-    for(int row = 0; row < rows; row++) {
-        for(int col = 0; col < cols; col++) {
-            printf("%c", cards[row][col]);
-        }
-        putchar('\n');
-    }
-    printf("wins=%d\n", wins);
-    return wins;
-}
 
+        if(matches > 0 ) {
+            for(int z = 0; z < instances[i]; z++) {
+                int next_card = i + 1;
+                for(int row = next_card; row < matches + next_card; row++) {
+                    instances[row]++;
+                }
+            }
+        }
+    }
+    
+    int total_cards = 0;
+    for(int row = 0; row < rows; row++) {
+        total_cards += instances[row];
+        free(cards[row]);
+    }
+    free(cards);
+    return total_cards;
+}
 
 
 int main(int argc, char **argv) {
@@ -170,5 +161,8 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     } 
     printf("The total part_one are %d\n", part_one(input));
-    part_two(input);
+    printf("Total instances are %d\n", part_two(input));
+    free(input);
+
+    return EXIT_SUCCESS;
 }
