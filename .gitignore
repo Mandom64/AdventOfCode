@@ -51,5 +51,6 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-# Puzzle input files 
+# Files that show puzzle input 
 **/input.txt
+**/output.txt

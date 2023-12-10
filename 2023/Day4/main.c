@@ -44,7 +44,7 @@ int part_one(char *input) {
 
     // Numbers in each card
     int N = (int)(strlen(input) / cards);
-    int win_nums[N], my_nums[N];
+    int winning[N], mine[N];
     int w = 0;
     int m = 0;
     int total_points = 0;
@@ -57,7 +57,7 @@ int part_one(char *input) {
         if(input[i] == '\n') {
             for(int i = 0; i < w; i++) {
                 for(int j = 0; j < m; j++) {
-                    if(win_nums[i] == my_nums[j]) {
+                    if(winning[i] == mine[j]) {
                         if(first_match) {
                             points = 1;
                             first_match = false;
@@ -81,12 +81,12 @@ int part_one(char *input) {
         if(sep_found) {
             int num = number(input, strlen(input), &i);
             if(num != 0) {
-                my_nums[m++] = num;
+                mine[m++] = num;
             }
         } else {
             int num = number(input, strlen(input), &i);
             if(num != 0) {
-                win_nums[w++] = num;
+                winning[w++] = num;
             }
         }
     }

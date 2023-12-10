@@ -24,15 +24,7 @@ char *read_data(char *file_path)
     return buffer;
 }
 
-int isnumber(char *str, int pos) 
-{
-    int i = pos;
-    int num = 0;
-    while(isdigit(str[i])) {
-        num = 10*num + (int)str[i];
-    }
-    return num;
-}
+
 
 int part_one(char *input) 
 {
