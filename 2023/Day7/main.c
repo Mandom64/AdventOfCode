@@ -5,7 +5,7 @@
 #include <string.h>
 #include <ctype.h>
 
-// Caller must free buffer
+/* Caller must free buffer */ 
 char *read_data(char *file_path) 
 {
     FILE *fp = NULL;
@@ -29,7 +29,7 @@ char *read_data(char *file_path)
     return buffer;
 }
 
-int count_lines(char *file) 
+int count_lines(const char *file) 
 {
     int lines = 0;
     printf("size of file: %ld\n", strlen(file));
@@ -107,20 +107,21 @@ typedef struct {
     int size;
 } Hands;
 
+/* We evaluate hands in sets of 5 */
 #define MAX_SETS 5
 
-void print_hands(Hands *h) 
+void print_hands(const Hands *h) 
 {
     for(int set = 0; set < h->size; set += MAX_SETS) {
         for(int hand = 0; hand < MAX_SETS; hand++) {
             printf("Hand:%d\n    Power:%s\n    Bid:%d\n    Type:%d\n    Rank:%d\n", 
-                set+hand, h->hands[set+hand].power, h->hands[set+hand].bid, (int)h->hands[set+hand].type, h->hands[set+hand].rank);
+                set+hand+1, h->hands[set+hand].power, h->hands[set+hand].bid, (int)h->hands[set+hand].type, h->hands[set+hand].rank);
         }
         printf("____________________________________\n");
     }
 }
 
-int winnings(char *input) 
+int winnings(const char *input) 
 {
     int input_len = count_lines(input) + 1;
     Hands *h = malloc(sizeof(Hands));
@@ -138,7 +139,7 @@ int winnings(char *input)
         strcpy(h->hands[h->size].power, power);
 
         int bid = 0;
-        // Move past the spaces to get to the bids
+        /* Move past the spaces to get to the bids */
         while(!isdigit(input[i])) i++;
         while(isdigit(input[i])) {
             bid = bid*10 + (input[i] - '0');
@@ -149,7 +150,7 @@ int winnings(char *input)
         h->size++;
     }
 
-    // Sort based on type
+    /* Sort based on type */
     for(int set = 0; set < h->size; set += MAX_SETS) {
         for(int i = 0; i < MAX_SETS - 1; i++) {
             for(int j = i+1; j < MAX_SETS; j++) {
@@ -162,42 +163,67 @@ int winnings(char *input)
         }
     }
 
-
-    int total_winnings = 0;
-    // Finds the ranking of each hand
-    // TODO: This must be fixed to get the correct result
+    /* Sort based on power string */
     for(int set = 0; set < h->size; set += MAX_SETS) {
-        bool same_power = false;
+        for(int i = 0; i < MAX_SETS - 1; i++) {
+            CardType curr_type = h->hands[set+i].type;
+            for(int j = i+1; j < MAX_SETS; j++) {
+                if(h->hands[set+j].type > curr_type) {
+                    break;
+                }
+                if(strcmp(h->hands[set+i].power, h->hands[set+j].power) > 0) {
+                    Hand tmp = h->hands[set+i];
+                    h->hands[set+i] = h->hands[set+j];
+                    h->hands[set+j] = tmp;
+                }
+            }
+        }
+    }
+
+
+    /* Finds the ranking of each hand                     *
+     * TODO: This must be fixed to get the correct result */
+    for(int set = 0; set < h->size; set += MAX_SETS) {
         for(int i = 0; i < MAX_SETS; i++) {
+            bool same_power = false;
             for(int j = i+1; j < MAX_SETS; j++) {
                 char *power = h->hands[set+i].power;
                 char *next_power = h->hands[set+j].power;
-                if(h->hands[i].type == h->hands[j].type) {
+                if(h->hands[set+i].type == h->hands[set+j].type) {
                     same_power = true;
                     if(strcmp(power, next_power) > 0) {
-                        //printf("%s is stronger than %s\n", power, next_power);
+                        printf("hand: %d| %s is stronger than %s|i:%d j:%d\n", set, power, next_power, i, j);
                         h->hands[set+i].rank = j+1;
                         h->hands[set+j].rank = i+1;
-                    } else if(strcmp(power, next_power) < 0){
-                        //printf("%s is stronger than %s\n", next_power, power);
-                        h->hands[set+i].rank = i;
-                        h->hands[set+j].rank = i+1;
+                        i++;
+                        break;
+                    }
+                    else if(strcmp(power, next_power) < 0) {
+                        printf("    hand: %d| %s is stronger than %s|i:%d j:%d\n", set, next_power, power, i, j);
+                        h->hands[set+i].rank = i+1;
+                        h->hands[set+j].rank = j+1;
+                        i++;
+                        break;
                     }
                 }
             }
             if(!same_power) {
+                printf("hand: %d| %s |i:%d\n", set, h->hands[set+i].power, i);
                 h->hands[set+i].rank = i+1;
             }
         }
     }
 
+    int total_winnings = 0;
+    /* Accumulate total winnings from each set */ 
     for(int set = 0; set < h->size; set += MAX_SETS) {
+        printf("Set:%d\n", set);
         for(int i = 0; i < MAX_SETS; i++) {
-            total_winnings += h->hands[i].bid * h->hands[i].rank;
-            //printf("%d * %d\n",h->hands[i].bid, h->hands[i].rank);
+            total_winnings += h->hands[set+i].bid * h->hands[set+i].rank;
+            printf("(%d * %d) + ",h->hands[set+i].bid, h->hands[set+i].rank);
         }
+        printf("\n");
     }
-
 
     print_hands(h);
     if(h->hands != NULL) {
@@ -222,7 +248,7 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
     printf("_____________________________________\n\n");
-    printf("Total winnings: %d\n",winnings(input));
+    printf("Total winnings: %d\n", winnings(input));
 	free(input);
 	return EXIT_SUCCESS;
 }
